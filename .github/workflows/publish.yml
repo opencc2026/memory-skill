@@ -1,0 +1,40 @@
+name: Publish to ClawHub
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Install clawhub
+      run: npm install -g clawhub
+    
+    - name: Login to ClawHub
+      env:
+        CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
+      run: |
+        if [ -z "$CLAWHUB_TOKEN" ]; then
+          echo "❌ 错误: CLAWHUB_TOKEN未设置"
+          echo "请在仓库Settings → Secrets → Actions中添加CLAWHUB_TOKEN"
+          exit 1
+        fi
+        
+        echo "🔐 登录ClawHub..."
+        echo "$CLAWHUB_TOKEN" | clawhub login --token
+    
+    - name: Publish to ClawHub
+      run: |
+        echo "📦 发布Memory Skill到ClawHub..."
+        clawhub publish .
